@@ -116,7 +116,7 @@ optim_method = {
 optimizer = KBCOptimizer(model, regularizer, optim_method, args.batch_size)
 
 save_model_path = args.save_model
-save_model = len(save_model_path) > 0
+save_model = len(save_model_path.strip()) > 0
 if save_model and os.path.exists(save_model_path):
     if not os.path.exists(save_model_path+os.sep+args.model):
         os.mkdir(save_model_path+os.sep+args.model)
