@@ -6,6 +6,8 @@
 #
 
 import argparse
+import os
+import sys
 from typing import Dict
 
 import torch
@@ -13,16 +15,19 @@ from torch import optim
 
 from kbc.datasets import Dataset
 from kbc.models import CP, ComplEx
-from kbc.regularizers import F2, N3
 from kbc.optimizers import KBCOptimizer
+from kbc.regularizers import F2, N3
 
-
-big_datasets = ['FB15K', 'WN', 'WN18RR', 'FB237', 'YAGO3-10']
+big_datasets = ['FB15K', 'WN', 'WN18RR', 'FB237', 'YAGO3-10', 'CKG-181019', 'CKG-181019-EXT']
 datasets = big_datasets
 
 parser = argparse.ArgumentParser(
     description="Relational learning contraption"
 )
+
+parser.add_argument(
+    "--save-model", nargs=1, default="", dest="save_model",
+    help="Save final model to specified directory")
 
 parser.add_argument(
     '--dataset', choices=datasets,
@@ -110,6 +115,17 @@ optim_method = {
 
 optimizer = KBCOptimizer(model, regularizer, optim_method, args.batch_size)
 
+save_model_path = args.save_model
+save_model = len(save_model_path) > 0
+if save_model and os.path.exists(save_model_path):
+    if not os.path.exists(save_model_path+os.sep+args.model):
+        os.mkdir(save_model_path+os.sep+args.model)
+    save_model_path = save_model_path + os.sep + args.model
+else:
+    print("Directory specified for --save-model doesn't exist!")
+
+
+
 
 def avg_both(mrrs: Dict[str, float], hits: Dict[str, torch.FloatTensor]):
     """
@@ -140,6 +156,9 @@ for e in range(args.max_epochs):
 
         print("\t TRAIN: ", train)
         print("\t VALID : ", valid)
+
+if save_model:
+    torch.save(model.state_dict(), save_model_path)
 
 results = dataset.eval(model, 'test', -1)
 print("\n\nTEST : ", results)
