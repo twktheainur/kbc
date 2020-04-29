@@ -12,6 +12,7 @@ from typing import Dict
 
 import torch
 from torch import optim
+from torch.nn import DataParallel
 
 from kbc.datasets import Dataset
 from kbc.models import CP, ComplEx
@@ -118,6 +119,8 @@ regularizer = {
 
 device = 'cuda'
 model.to(device)
+
+model = DataParallel(model, device_ids=[0, 1]).cuda()
 
 optim_method = {
     'Adagrad': lambda: optim.Adagrad(model.parameters(), lr=args.learning_rate),
