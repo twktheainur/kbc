@@ -41,6 +41,14 @@ parser.add_argument(
     help="Model in {}".format(models)
 )
 
+def list_int(values):
+    return [int(value.strip()) for value in values.split(",")]
+
+parser.add_argument(
+    '--parallel', nargs='+', default=[], type=list_int,
+    help="Activate parallel GPU processing with specified GPU device ids"
+)
+
 regularizers = ['N3', 'F2']
 parser.add_argument(
     '--regularizer', choices=regularizers, default='N3',
@@ -100,9 +108,6 @@ if save_model:
     else:
         print("Directory specified for --save-model doesn't exist!")
 
-
-
-
 dataset = Dataset(args.dataset)
 examples = torch.from_numpy(dataset.get_train().astype('int64'))
 
@@ -117,10 +122,14 @@ regularizer = {
     'N3': N3(args.reg),
 }[args.regularizer]
 
-device = 'cuda'
-model.to(device)
 
-model = DataParallel(model, device_ids=[0, 1]).cuda()
+if len(args.parallel)>0:
+    model = DataParallel(model, device_ids=args.parallel).cuda()
+else:
+    device = 'cuda'
+    model.to(device)
+
+
 
 optim_method = {
     'Adagrad': lambda: optim.Adagrad(model.parameters(), lr=args.learning_rate),
