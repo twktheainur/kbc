@@ -26,7 +26,7 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument(
-    "--save-model", nargs=1, default="", dest="save_model",
+    "--save-model", nargs=1, default=[''], dest="save_model",
     help="Save final model to specified directory")
 
 parser.add_argument(
@@ -90,6 +90,20 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+save_model_path = args.save_model
+save_model = len(save_model_path) > 0 and len(save_model_path[0].strip()) > 0
+if save_model:
+    save_model_path = save_model_path[0]
+    if os.path.exists(save_model_path):
+        if not os.path.exists(save_model_path+os.sep+args.dataset):
+            os.mkdir(save_model_path+os.sep+args.dataset)
+        save_model_path = save_model_path + os.sep + args.dataset
+    else:
+        print("Directory specified for --save-model doesn't exist!")
+
+
+
+
 dataset = Dataset(args.dataset)
 examples = torch.from_numpy(dataset.get_train().astype('int64'))
 
@@ -115,14 +129,6 @@ optim_method = {
 
 optimizer = KBCOptimizer(model, regularizer, optim_method, args.batch_size)
 
-save_model_path = args.save_model
-save_model = len(save_model_path.strip()) > 0
-if save_model and os.path.exists(save_model_path):
-    if not os.path.exists(save_model_path+os.sep+args.model):
-        os.mkdir(save_model_path+os.sep+args.model)
-    save_model_path = save_model_path + os.sep + args.model
-else:
-    print("Directory specified for --save-model doesn't exist!")
 
 
 
