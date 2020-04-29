@@ -25,11 +25,16 @@ class KBCOptimizer(object):
         self.batch_size = batch_size
         self.verbose = verbose
 
-    def epoch(self, examples: torch.LongTensor):
+    def epoch(self, examples: torch.LongTensor, epoch_number = -1, max_epochs = -1):
         actual_examples = examples[torch.randperm(examples.shape[0]), :]
         loss = nn.CrossEntropyLoss(reduction='mean')
         with tqdm.tqdm(total=examples.shape[0], unit='ex', disable=not self.verbose) as bar:
-            bar.set_description(f'train loss')
+            description = f'train loss'
+            if max_epochs > 0:
+                description = "/ " + str(max_epochs) + " " + description
+            if epoch_number > 0:
+                description = str(epoch_number) + " "
+            bar.set_description(description)
             b_begin = 0
             while b_begin < examples.shape[0]:
                 input_batch = actual_examples[

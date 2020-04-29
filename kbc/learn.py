@@ -146,7 +146,7 @@ def avg_both(mrrs: Dict[str, float], hits: Dict[str, torch.FloatTensor]):
 cur_loss = 0
 curve = {'train': [], 'valid': [], 'test': []}
 for e in range(args.max_epochs):
-    cur_loss = optimizer.epoch(examples)
+    cur_loss = optimizer.epoch(examples, epoch_number=e, max_epochs=args.max_epochs)
 
     if (e + 1) % args.valid == 0:
         valid, test, train = [
