@@ -162,6 +162,7 @@ for e in range(args.max_epochs):
         print("\t VALID : ", valid)
 
 if save_model:
+    print("Saving trained model to "+ save_model_path+ " ...")
     torch.save(model.state_dict(), save_model_path)
 
 results = dataset.eval(model, 'test', -1)
