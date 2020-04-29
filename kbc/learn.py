@@ -117,17 +117,17 @@ model = {
     'ComplEx': lambda: ComplEx(dataset.get_shape(), args.rank, args.init),
 }[args.model]()
 
+if len(args.parallel)>0:
+    model = DataParallel(model, device_ids=args.parallel[0]).cuda()
+else:
+    device = 'cuda'
+    model.to(device)
+
 regularizer = {
     'F2': F2(args.reg),
     'N3': N3(args.reg),
 }[args.regularizer]
 
-
-if len(args.parallel)>0:
-    model = DataParallel(model, device_ids=args.parallel).cuda()
-else:
-    device = 'cuda'
-    model.to(device)
 
 
 
