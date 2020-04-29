@@ -30,10 +30,8 @@ class KBCOptimizer(object):
         loss = nn.CrossEntropyLoss(reduction='mean')
         with tqdm.tqdm(total=examples.shape[0], unit='ex', disable=not self.verbose) as bar:
             description = f'train loss'
-            if max_epochs > 0:
-                description = "/ " + str(max_epochs) + " " + description
-            if epoch_number > 0:
-                description = str(epoch_number) + " "
+            description = "/ " + str(max_epochs) + " " + description
+            description = str(epoch_number) + " " + description
             bar.set_description(description)
             b_begin = 0
             while b_begin < examples.shape[0]:
