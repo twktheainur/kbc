@@ -95,9 +95,7 @@ save_model = len(save_model_path) > 0 and len(save_model_path[0].strip()) > 0
 if save_model:
     save_model_path = save_model_path[0]
     if os.path.exists(save_model_path):
-        if not os.path.exists(save_model_path+os.sep+args.dataset):
-            os.mkdir(save_model_path+os.sep+args.dataset)
-        save_model_path = save_model_path + os.sep + args.dataset
+        save_model_path = save_model_path + os.sep + args.dataset+".pickle"
     else:
         print("Directory specified for --save-model doesn't exist!")
 
