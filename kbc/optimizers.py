@@ -15,15 +15,14 @@ from kbc.regularizers import Regularizer
 
 
 class KBCOptimizer(object):
-    def __init__(
-            self, model: KBCModel, regularizer: Regularizer, optimizer: optim.Optimizer, batch_size: int = 256,
-            verbose: bool = True
-    ):
+    def __init__(self, model: KBCModel, regularizer: Regularizer, optimizer: optim.Optimizer, batch_size: int = 256,
+                 verbose: bool = True, use_cpu=False):
         self.model = model
         self.regularizer = regularizer
         self.optimizer = optimizer
         self.batch_size = batch_size
         self.verbose = verbose
+        self.use_cpu = use_cpu
 
     def epoch(self, examples: torch.LongTensor, epoch_number = -1, max_epochs = -1):
         actual_examples = examples[torch.randperm(examples.shape[0]), :]
@@ -39,7 +38,7 @@ class KBCOptimizer(object):
                 input_batch = actual_examples[
                     b_begin:b_begin + self.batch_size
                 ]
-                if torch.cuda.is_available():
+                if not self.use_cpu:
                     input_batch = input_batch.cuda()
 
                 predictions, factors = self.model.forward(input_batch)

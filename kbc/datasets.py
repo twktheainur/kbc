@@ -5,22 +5,23 @@
 # LICENSE file in the root directory of this source tree.
 #
 
-from pathlib import Path
-import pkg_resources
 import pickle
+from pathlib import Path
 from typing import Dict, Tuple, List
 
 import numpy as np
+import pkg_resources
 import torch
-from kbc.models import KBCModel
 
+from kbc.models import KBCModel
 
 DATA_PATH = Path(pkg_resources.resource_filename('kbc', 'data/'))
 
 
 class Dataset(object):
-    def __init__(self, name: str):
+    def __init__(self, name: str, use_cpu=False):
         self.root = DATA_PATH / name
+        self.use_cpu = use_cpu
 
         self.data = {}
         for f in ['train', 'test', 'valid']:
@@ -53,7 +54,7 @@ class Dataset(object):
     ):
         test = self.get_examples(split)
         examples = torch.from_numpy(test.astype('int64'))
-        if torch.cuda.is_available():
+        if not self.use_cpu:
             examples = examples.cuda()
         missing = [missing_eval]
         if missing_eval == 'both':

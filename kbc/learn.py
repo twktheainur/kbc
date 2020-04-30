@@ -37,6 +37,11 @@ parser.add_argument(
     help="Save checkpoints for each epoch of the model to specified directory")
 
 parser.add_argument(
+    "--cpu", action='store_true', default=False,
+    help="Use CPU for training"
+)
+
+parser.add_argument(
     '--dataset', choices=datasets,
     help="Dataset in {}".format(datasets)
 )
@@ -107,6 +112,8 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+use_cpu = not torch.cuda.is_available() or args.cpu
+
 save_model_path = args.save_model
 save_model = len(save_model_path) > 0 and len(save_model_path[0].strip()) > 0
 if save_model:
@@ -131,7 +138,7 @@ if save_checkpoints:
         save_checkpoints = False
         print("Directory specified for --save-checkpoints doesn't exist!")
 
-dataset = Dataset(args.dataset)
+dataset = Dataset(args.dataset, use_cpu=use_cpu)
 examples = torch.from_numpy(dataset.get_train().astype('int64'))
 
 print(dataset.get_shape())
@@ -151,10 +158,12 @@ if len(checkpoint_pickles) > 0:
     checkpoint_epoch = numpy.array(numbers).max(initial=0) + 1
     model.load_state_dict(torch.load(save_checkpoints_path.format(epochnum=str(checkpoint_epoch - 1))))
 
+
+
 if len(args.parallel) > 0:
     model = DataParallel(model, device_ids=args.parallel[0]).cuda()
 else:
-    if torch.cuda.is_available():
+    if use_cpu:
         device = 'cuda'
         model.to(device)
     else:
@@ -172,7 +181,7 @@ optim_method = {
     'SGD': lambda: optim.SGD(model.parameters(), lr=args.learning_rate)
 }[args.optimizer]()
 
-optimizer = KBCOptimizer(model, regularizer, optim_method, args.batch_size)
+optimizer = KBCOptimizer(model, regularizer, optim_method, args.batch_size,use_cpu=use_cpu)
 
 
 def avg_both(mrrs: Dict[str, float], hits: Dict[str, torch.FloatTensor]):
