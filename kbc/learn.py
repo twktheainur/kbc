@@ -163,7 +163,7 @@ if len(checkpoint_pickles) > 0:
 if len(args.parallel) > 0:
     model = DataParallel(model, device_ids=args.parallel[0]).cuda()
 else:
-    if use_cpu:
+    if not use_cpu:
         device = 'cuda'
         model.to(device)
     else:
