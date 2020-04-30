@@ -34,10 +34,13 @@ class KBCOptimizer(object):
             description = str(epoch_number) + " " + description
             bar.set_description(description)
             b_begin = 0
+
             while b_begin < examples.shape[0]:
                 input_batch = actual_examples[
                     b_begin:b_begin + self.batch_size
-                ].cuda()
+                ]
+                if torch.cuda.is_available():
+                    input_batch = input_batch.cuda()
 
                 predictions, factors = self.model.forward(input_batch)
                 truth = input_batch[:, 2]
