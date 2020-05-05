@@ -165,7 +165,7 @@ if len(args.gpus) > 0:
     if len(ids) > 1:
         model = DataParallel(model, device_ids=ids).cuda()
     else:
-        device = 'cuda:'+str(ids[0])
+        device = torch.device('cuda:'+str(ids[0]))
         model.to(device)
 else:
     if not use_cpu:
