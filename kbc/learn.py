@@ -209,7 +209,7 @@ for e in training_range:
 
     if (e + 1) % args.valid == 0:
         valid, test, train = [
-            avg_both(*dataset.eval(model, split, -1 if split != 'train' else 50000))
+            avg_both(*dataset.eval(model, split, -1 if split != 'train' else 50000, batch_size=args.batch_size))
             for split in ['valid', 'test', 'train']
         ]
 

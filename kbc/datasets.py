@@ -50,7 +50,7 @@ class Dataset(object):
 
     def eval(
             self, model: KBCModel, split: str, n_queries: int = -1, missing_eval: str = 'both',
-            at: Tuple[int] = (1, 3, 10)
+            at: Tuple[int] = (1, 3, 10), batch_size = 500
     ):
         test = self.get_examples(split)
         examples = torch.from_numpy(test.astype('int64'))
@@ -73,7 +73,7 @@ class Dataset(object):
                 q[:, 0] = q[:, 2]
                 q[:, 2] = tmp
                 q[:, 1] += self.n_predicates // 2
-            ranks = model.get_ranking(q, self.to_skip[m], batch_size=500)
+            ranks = model.get_ranking(q, self.to_skip[m], batch_size=batch_size)
             mean_reciprocal_rank[m] = torch.mean(1. / ranks).item()
             hits_at[m] = torch.FloatTensor((list(map(
                 lambda x: torch.mean((ranks <= x).float()).item(),
