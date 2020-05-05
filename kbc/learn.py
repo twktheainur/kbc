@@ -58,8 +58,8 @@ def list_int(values):
 
 
 parser.add_argument(
-    '--parallel', nargs='+', default=[], type=list_int,
-    help="Activate parallel GPU processing with specified GPU device ids"
+    '--gpus', nargs='+', default=[], type=list_int,
+    help="Comma separated list of gpu(s) to use, if several are provided computation will be distributed in parallel."
 )
 
 regularizers = ['N3', 'F2']
@@ -160,15 +160,19 @@ if len(checkpoint_pickles) > 0:
 
 
 
-if len(args.parallel) > 0:
-    model = DataParallel(model, device_ids=args.parallel[0]).cuda()
+if len(args.gpus) > 0:
+    ids = args.gpus[0]
+    if len(ids) > 1:
+        model = DataParallel(model, device_ids=ids).cuda()
+    else:
+        device = 'cuda:'+str(ids[0])
+        model.to(device)
 else:
     if not use_cpu:
         device = 'cuda'
-        model.to(device)
     else:
         device = "cpu"
-        model.to(device)
+    model.to(device)
 
 regularizer = {
     'F2': F2(args.reg),
