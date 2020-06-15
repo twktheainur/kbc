@@ -7,6 +7,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Tuple, List, Dict
+
 import torch
 from torch import nn
 
@@ -14,6 +15,14 @@ from torch import nn
 class KBCModel(nn.Module, ABC):
     @abstractmethod
     def get_rhs(self, chunk_begin: int, chunk_size: int):
+        pass
+
+    @abstractmethod
+    def get_lhs(self, chunk_begin: int, chunk_size: int):
+        pass
+
+    @abstractmethod
+    def get_rel(self, chunk_begin: int, chunk_size: int):
         pass
 
     @abstractmethod
@@ -105,13 +114,23 @@ class CP(KBCModel):
         rhs = self.rhs(x[:, 2])
         return (lhs * rel) @ self.rhs.weight.t(), (lhs, rel, rhs)
 
-    def get_rhs(self, chunk_begin: int, chunk_size: int):
-        return self.rhs.weight.data[
-            chunk_begin:chunk_begin + chunk_size
-        ].transpose(0, 1)
-
     def get_queries(self, queries: torch.Tensor):
         return self.lhs(queries[:, 0]).data * self.rel(queries[:, 1]).data
+
+    def get_rhs(self, chunk_begin: int, chunk_size: int):
+        return self.rhs.weight.data[
+               chunk_begin:chunk_begin + chunk_size
+               ].transpose(0, 1)
+
+    def get_lhs(self, chunk_begin: int, chunk_size: int):
+        return self.lhs.weight.data[
+               chunk_begin:chunk_begin + chunk_size
+               ].transpose(0, 1)
+
+    def get_rel(self, chunk_begin: int, chunk_size: int):
+        return self.rel.weight.data[
+               chunk_begin:chunk_begin + chunk_size
+               ].transpose(0, 1)
 
 
 class ComplEx(KBCModel):
@@ -157,18 +176,13 @@ class ComplEx(KBCModel):
         to_score = self.embeddings[0].weight
         to_score = to_score[:, :self.rank], to_score[:, self.rank:]
         return (
-            (lhs[0] * rel[0] - lhs[1] * rel[1]) @ to_score[0].transpose(0, 1) +
-            (lhs[0] * rel[1] + lhs[1] * rel[0]) @ to_score[1].transpose(0, 1)
-        ), (
-            torch.sqrt(lhs[0] ** 2 + lhs[1] ** 2),
-            torch.sqrt(rel[0] ** 2 + rel[1] ** 2),
-            torch.sqrt(rhs[0] ** 2 + rhs[1] ** 2)
-        )
-
-    def get_rhs(self, chunk_begin: int, chunk_size: int):
-        return self.embeddings[0].weight.data[
-            chunk_begin:chunk_begin + chunk_size
-        ].transpose(0, 1)
+                       (lhs[0] * rel[0] - lhs[1] * rel[1]) @ to_score[0].transpose(0, 1) +
+                       (lhs[0] * rel[1] + lhs[1] * rel[0]) @ to_score[1].transpose(0, 1)
+               ), (
+                   torch.sqrt(lhs[0] ** 2 + lhs[1] ** 2),
+                   torch.sqrt(rel[0] ** 2 + rel[1] ** 2),
+                   torch.sqrt(rhs[0] ** 2 + rhs[1] ** 2)
+               )
 
     def get_queries(self, queries: torch.Tensor):
         lhs = self.embeddings[0](queries[:, 0])
@@ -180,3 +194,18 @@ class ComplEx(KBCModel):
             lhs[0] * rel[0] - lhs[1] * rel[1],
             lhs[0] * rel[1] + lhs[1] * rel[0]
         ], 1)
+
+    def get_rhs(self, chunk_begin: int, chunk_size: int):
+        return self.rhs.weight.data[
+               chunk_begin:chunk_begin + chunk_size
+               ].transpose(0, 1)
+
+    def get_lhs(self, chunk_begin: int, chunk_size: int):
+        return self.lhs.weight.data[
+               chunk_begin:chunk_begin + chunk_size
+               ].transpose(0, 1)
+
+    def get_rel(self, chunk_begin: int, chunk_size: int):
+        return self.rel.weight.data[
+               chunk_begin:chunk_begin + chunk_size
+               ].transpose(0, 1)

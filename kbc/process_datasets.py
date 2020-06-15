@@ -4,15 +4,14 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 #
-import pkg_resources
-import os
 import errno
-from pathlib import Path
+import os
 import pickle
+from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
-
-from collections import defaultdict
+import pkg_resources
 
 DATA_PATH = pkg_resources.resource_filename('kbc', 'data/')
 
@@ -24,7 +23,7 @@ def prepare_dataset(path, name):
     In the format :
     (lhs)\t(rel)\t(rhs)\n
     Maps each entity and relation to a unique id, create corresponding folder
-    name in pkg/data, with mapped train/test/valid files.
+    name_or_path in pkg/data, with mapped train/test/valid files.
     Also create to_skip_lhs / to_skip_rhs for filtered metrics and
     rel_id / ent_id for analysis.
     """
@@ -107,7 +106,7 @@ def prepare_dataset(path, name):
 
 
 if __name__ == "__main__":
-    datasets = ['FB15K', 'WN', 'WN18RR', 'FB237', 'YAGO3-10', 'CKG-181019', 'CKG-181019-EXT']
+    datasets = ['CKG-181019-EXT-NK']
     for d in datasets:
         print("Preparing dataset {}".format(d))
         try:
@@ -123,4 +122,3 @@ if __name__ == "__main__":
                 print("File exists. skipping...")
             else:
                 raise
-

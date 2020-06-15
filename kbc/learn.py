@@ -21,8 +21,7 @@ from kbc.models import CP, ComplEx
 from kbc.optimizers import KBCOptimizer
 from kbc.regularizers import F2, N3
 
-big_datasets = ['FB15K', 'WN', 'WN18RR', 'FB237', 'YAGO3-10', 'CKG-181019', 'CKG-181019-EXT']
-datasets = big_datasets
+datasets = Dataset.get_dataset_shortlist()
 
 parser = argparse.ArgumentParser(
     description="Relational learning contraption"
@@ -158,14 +157,12 @@ if len(checkpoint_pickles) > 0:
     checkpoint_epoch = numpy.array(numbers).max(initial=0) + 1
     model.load_state_dict(torch.load(save_checkpoints_path.format(epochnum=str(checkpoint_epoch - 1))))
 
-
-
 if len(args.gpus) > 0:
     ids = args.gpus[0]
     if len(ids) > 1:
         model = DataParallel(model, device_ids=ids).cuda()
     else:
-        device = torch.device('cuda:'+str(ids[0]))
+        device = torch.device('cuda:' + str(ids[0]))
         model.to(device)
 else:
     if not use_cpu:
@@ -185,7 +182,7 @@ optim_method = {
     'SGD': lambda: optim.SGD(model.parameters(), lr=args.learning_rate)
 }[args.optimizer]()
 
-optimizer = KBCOptimizer(model, regularizer, optim_method, args.batch_size,use_cpu=use_cpu)
+optimizer = KBCOptimizer(model, regularizer, optim_method, args.batch_size, use_cpu=use_cpu)
 
 
 def avg_both(mrrs: Dict[str, float], hits: Dict[str, torch.FloatTensor]):

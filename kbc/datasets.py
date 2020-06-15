@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 #
 
+import os
 import pickle
 from pathlib import Path
 from typing import Dict, Tuple, List
@@ -19,13 +20,43 @@ DATA_PATH = Path(pkg_resources.resource_filename('kbc', 'data/'))
 
 
 class Dataset(object):
-    def __init__(self, name: str, use_cpu=False):
-        self.root = DATA_PATH / name
+
+    @staticmethod
+    def get_dataset_shortlist():
+        return ['FB15K', 'WN', 'WN18RR', 'FB237', 'YAGO3-10', 'CKG-181019', 'CKG-181019-EXT']
+
+    def __init__(self, name_or_path: str, use_cpu=False):
+        shortlist = Dataset.get_dataset_shortlist()
+
+        if name_or_path in shortlist:
+            self.root = DATA_PATH / name_or_path
+        else:
+            self.root = name_or_path
+
         self.use_cpu = use_cpu
+
+        self.entity_index = {}
+        self.entity_reverse_index = {}
+        self.relation_index = {}
+        self.relation_reverse_index = {}
+
+        # Loading entity mapping (format: <uri>\t[0-9]+)
+        entity_map_file = open(os.path.join(self.root, "ent_id"), 'r')
+        for line in entity_map_file.readlines():
+            parts = line.split("\t")
+            self.entity_index[parts[0]] = int(parts[1])
+            self.entity_reverse_index[int(parts[1])] = parts[0]
+
+        # Loading relation mapping (format: <uri>\t[0-9]+)
+        rel_map_file = open(os.path.join(self.root, "rel_id"), 'r')
+        for line in rel_map_file.readlines():
+            parts = line.split("\t")
+            self.relation_index[parts[0]] = int(parts[1])
+            self.relation_reverse_index[int(parts[1])] = parts[0]
 
         self.data = {}
         for f in ['train', 'test', 'valid']:
-            in_file = open(str(self.root / (f + '.pickle')), 'rb')
+            in_file = open(os.path.join(self.root, (f + '.pickle')), 'rb')
             self.data[f] = pickle.load(in_file)
 
         maxis = np.max(self.data['train'], axis=0)
@@ -33,9 +64,21 @@ class Dataset(object):
         self.n_predicates = int(maxis[1] + 1)
         self.n_predicates *= 2
 
-        inp_f = open(str(self.root / f'to_skip.pickle'), 'rb')
+        inp_f = open(os.path.join(self.root, f'to_skip.pickle'), 'rb')
         self.to_skip: Dict[str, Dict[Tuple[int, int], List[int]]] = pickle.load(inp_f)
         inp_f.close()
+
+    def get_node_id_from_name(self, name: str):
+        return self.entity_index[name]
+
+    def get_node_name_from_id(self, id: str):
+        return self.entity_reverse_index[id]
+
+    def get_rel_id_from_name(self, name: str):
+        return self.relation_index[name]
+
+    def get_rel_name_from_id(self, id: str):
+        return self.relation_reverse_index[id]
 
     def get_examples(self, split):
         return self.data[split]
@@ -50,7 +93,7 @@ class Dataset(object):
 
     def eval(
             self, model: KBCModel, split: str, n_queries: int = -1, missing_eval: str = 'both',
-            at: Tuple[int] = (1, 3, 10), batch_size = 500
+            at: Tuple[int] = (1, 3, 10), batch_size=500
     ):
         test = self.get_examples(split)
         examples = torch.from_numpy(test.astype('int64'))
@@ -75,10 +118,10 @@ class Dataset(object):
                 q[:, 1] += self.n_predicates // 2
             ranks = model.get_ranking(q, self.to_skip[m], batch_size=batch_size)
             mean_reciprocal_rank[m] = torch.mean(1. / ranks).item()
-            hits_at[m] = torch.FloatTensor((list(map(
+            hits_at[m] = torch.FloatTensor(list(map(
                 lambda x: torch.mean((ranks <= x).float()).item(),
                 at
-            ))))
+            )))
 
         return mean_reciprocal_rank, hits_at
 
