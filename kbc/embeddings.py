@@ -39,29 +39,29 @@ class KnowledgeGraphEmbeddingExtractor:
         return torch.sum(lhs_vector * rel_vector * rhs_vector, 0, keepdim=True).tolist()[0]
 
 
-dataset = Dataset("CKG-181019", use_cpu=True)
-model = CP(dataset.get_shape(), 50)
-model.load_state_dict(torch.load("models/CKG-181019.pickle", map_location=torch.device('cpu')))
-
-kgee = KnowledgeGraphEmbeddingExtractor(dataset, model)
-
-cos = nn.CosineSimilarity(dim=0)
-
-topic_concepts = ["http://lod.gesis.org/thesoz/concept_10045504", "http://lod.gesis.org/thesoz/concept_10038824",
-                  "http://lod.gesis.org/thesoz/concept_10035091",
-                  "http://lod.gesis.org/thesoz/concept_10041774", "http://lod.gesis.org/thesoz/concept_10034501",
-                  "http://vocabularies.unesco.org/thesaurus/concept407", "http://lod.gesis.org/thesoz/concept_10058252"]
-
-example_claim = kgee.left_hand_side_entity_embedding(
-    "http://data.gesis.org/claimskg/creative_work/087b8d48-f515-5265-b300-2235dbae76a2")
-
-for topic in topic_concepts:
-    print(
-        topic + " -- " + str(kgee.similarity(
-            "http://data.gesis.org/claimskg/creative_work/087b8d48-f515-5265-b300-2235dbae76a2",
-            "http://purl.org/dc/terms/about",
-            topic)))
-pass
+# dataset = Dataset("CKG-181019", use_cpu=True)
+# model = CP(dataset.get_shape(), 50)
+# model.load_state_dict(torch.load("models/CKG-181019.pickle", map_location=torch.device('cpu')))
+#
+# kgee = KnowledgeGraphEmbeddingExtractor(dataset, model)
+#
+# cos = nn.CosineSimilarity(dim=0)
+#
+# topic_concepts = ["http://lod.gesis.org/thesoz/concept_10045504", "http://lod.gesis.org/thesoz/concept_10038824",
+#                   "http://lod.gesis.org/thesoz/concept_10035091",
+#                   "http://lod.gesis.org/thesoz/concept_10041774", "http://lod.gesis.org/thesoz/concept_10034501",
+#                   "http://vocabularies.unesco.org/thesaurus/concept407", "http://lod.gesis.org/thesoz/concept_10058252"]
+#
+# example_claim = kgee.left_hand_side_entity_embedding(
+#     "http://data.gesis.org/claimskg/creative_work/087b8d48-f515-5265-b300-2235dbae76a2")
+#
+# for topic in topic_concepts:
+#     print(
+#         topic + " -- " + str(kgee.similarity(
+#             "http://data.gesis.org/claimskg/creative_work/087b8d48-f515-5265-b300-2235dbae76a2",
+#             "http://purl.org/dc/terms/about",
+#             topic)))
+# pass
 
 # Helathcare: http://lod.gesis.org/thesoz/concept_10045504
 # Taxes: http://lod.gesis.org/thesoz/concept_10038824
