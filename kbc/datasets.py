@@ -23,7 +23,7 @@ class Dataset(object):
 
     @staticmethod
     def get_dataset_shortlist():
-        return ['FB15K', 'WN', 'WN18RR', 'FB237', 'YAGO3-10', 'CKG-181019', 'CKG-181019-EXT']
+        return ['FB15K', 'WN', 'WN18RR', 'FB237', 'YAGO3-10', 'CKG', 'CKGE', 'CKGEXT-KW', 'CKGETH']
 
     def __init__(self, name_or_path: str, use_cpu=False):
         shortlist = Dataset.get_dataset_shortlist()

@@ -16,6 +16,7 @@ import torch
 from torch import optim
 from torch.nn import DataParallel
 
+from kbc import avg_both
 from kbc.datasets import Dataset
 from kbc.models import CP, ComplEx
 from kbc.optimizers import KBCOptimizer
@@ -185,16 +186,7 @@ optim_method = {
 optimizer = KBCOptimizer(model, regularizer, optim_method, args.batch_size, use_cpu=use_cpu)
 
 
-def avg_both(mrrs: Dict[str, float], hits: Dict[str, torch.FloatTensor]):
-    """
-    aggregate metrics for missing lhs and rhs
-    :param mrrs: d
-    :param hits:
-    :return:
-    """
-    m = (mrrs['lhs'] + mrrs['rhs']) / 2.
-    h = (hits['lhs'] + hits['rhs']) / 2.
-    return {'MRR': m, 'hits@[1,3,10]': h}
+
 
 
 cur_loss = 0
